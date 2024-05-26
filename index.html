@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adi Memory Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+      @layer components {
+        .title {
+          @apply text-6xl font-bold text-center my-5 bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent;
+        }
+
+        .grid-container {
+          @apply grid grid-cols-2 gap-2 p-2 content-center md:grid-cols-4 md:gap-4 md:p-4;
+        }
+
+        .grid-card {
+          @apply aspect-[4/3] rounded-lg hover:scale-95 transition-all duration-500 cursor-pointer;
+        }
+      }
+    </style>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+  </head>
+  <body>
+    <div class="container" x-data="game()">
+      <h1 class="title">Tebak Warna ala Adi</h1>
+
+      <div class="grid-container">
+        <template x-for="card in cards">
+          <div class="aspect-[4/3]">
+            <div
+              class="grid-card"
+              :class="['bg-' + (card.flipped ? card.color : 'gray') + '-500', card.animate]"
+              @click="flipCard(card)"
+              x-show="!card.cleared"
+            ></div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <script>
+      const delay = (milliseconds = 700) =>
+        new Promise((resolve) => setTimeout(resolve, milliseconds));
+      const game = () => {
+        return {
+          cards: [
+            { color: "red", flipped: false, cleared: false, animate: "" },
+            { color: "green", flipped: false, cleared: false, animate: "" },
+            { color: "blue", flipped: false, cleared: false, animate: "" },
+            { color: "yellow", flipped: false, cleared: false, animate: "" },
+            { color: "red", flipped: false, cleared: false, animate: "" },
+            { color: "green", flipped: false, cleared: false, animate: "" },
+            { color: "blue", flipped: false, cleared: false, animate: "" },
+            { color: "yellow", flipped: false, cleared: false, animate: "" },
+          ].sort(() => Math.random() - 0.5),
+          get flippedCards() {
+            return this.cards.filter((card) => card.flipped);
+          },
+          get remainingCards() {
+            return this.cards.filter((card) => !card.flipped);
+          },
+          async flipCard(card) {
+            // hanya bisa buka 2 kartu
+            if (this.flippedCards.length === 2) return;
+
+            // buka/tutup kartu
+            card.flipped = !card.flipped;
+
+            // cek ketika sudah ada 2 kartu yang terbuka, lalu cek warnanya sama atau tidak
+            if (this.flippedCards.length === 2) {
+              if (this.flippedCards[0].color === this.flippedCards[1].color) {
+                // beri animasi sebelum hilang
+                this.flippedCards.forEach(
+                  (card) =>
+                    (card.animate = "animate__animated animate__rubberBand")
+                );
+                await delay();
+                this.flippedCards.forEach((card) => (card.cleared = true));
+
+                // cek apakah kartu sudah hilang semua
+                if (this.remainingCards.length === 0) {
+                  alert("You WON!!!");
+                  location.reload();
+                }
+              }
+
+              // beri animasi sebelum kartu ditutup kembali
+              this.flippedCards.forEach(
+                (card) => (card.animate = "animate__animated animate__shakeX")
+              );
+              // tutup lagi semua kartu, setelah pemeriksaan
+              await delay();
+              this.flippedCards.forEach((card) => (card.flipped = false));
+              // hilangkan class animasinya
+              this.remainingCards.forEach((card) => (card.animate = ""));
+            }
+          },
+        };
+      };
+    </script>
+  </body>
+</html>
